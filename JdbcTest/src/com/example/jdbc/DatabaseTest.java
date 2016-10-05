@@ -11,21 +11,21 @@ import java.sql.SQLException;
 import java.util.Properties;
 
 public class DatabaseTest {
+	// Constants
 	private static final String DB_PASSWORD = "dbPassword";
 	private static final String DB_USER = "dbUser";
 	private static final String DB_URL = "dbUrl";
 	private static final String PROJECT_PROPERTIES = "project.properties";
-	private static String dbUrl;
-	private String dbUser;
-	private String dbPassword;
-	private Properties globalProps;
+	// Global properties
+	private static Properties globalProps;
 	
 	public void writeProperties() throws IOException {
 		Properties prop = new Properties();
-		prop.setProperty(DB_URL, "localhost");
-		prop.setProperty(DB_USER, "username");
-		prop.setProperty(DB_PASSWORD, "password");
-
+		// Sets properties
+		prop.setProperty(DB_URL, "jdbc:mysql://localhost:3306/burger_db");
+		prop.setProperty(DB_USER, "root");
+		prop.setProperty(DB_PASSWORD, "");
+		// Saves properties to file
 		try (OutputStream out = new FileOutputStream(PROJECT_PROPERTIES)) { // file name project.properties
 			prop.store(out, "Database Properties File");
 		}
@@ -33,15 +33,18 @@ public class DatabaseTest {
 	
 	public void readProperties() throws IOException {
 		try (InputStream in = new FileInputStream(PROJECT_PROPERTIES)) {
-			Properties globalProps = new Properties();
+			globalProps = new Properties();
+			// Loads properties
 			globalProps.load(in);
+			// Prints out properties
+			globalProps.list(System.out);
 		}
 	}
 	
 	public void connectToDatabase() throws SQLException {
-		String url = "jdbc:mysql://localhost:3306/burger_db";
-		String username = "root";
-		String password = "";
+		String url = globalProps.getProperty(DB_URL);
+		String username = globalProps.getProperty(DB_USER);
+		String password = globalProps.getProperty(DB_PASSWORD);
 
 		System.out.println("Connecting database...");
 
@@ -55,8 +58,10 @@ public class DatabaseTest {
 	public static void main(String[] args) {
 		DatabaseTest app = new DatabaseTest();
 		try {
+			app.writeProperties();
+			app.readProperties();
 			app.connectToDatabase();
-		} catch (SQLException e) {
+		} catch (IOException | SQLException e) {
 			e.printStackTrace();
 		}
 	}

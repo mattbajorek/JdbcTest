@@ -7,11 +7,14 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.util.Date;
 import java.util.Properties;
+import java.util.Random;
 
 public class DatabaseTest {
 	// Constants
@@ -77,6 +80,14 @@ public class DatabaseTest {
 			
 		}
 	}
+	
+	public void addData(Connection conn) throws SQLException {
+		String sql = "INSERT INTO burgers (burger_name) VALUES (?)";
+		try (PreparedStatement ps = conn.prepareStatement(sql)) {
+			ps.setString(1, "Ostrich");
+			ps.executeUpdate();
+		}
+	}
 
 	public static void main(String[] args) {
 		DatabaseTest app = new DatabaseTest();
@@ -84,6 +95,7 @@ public class DatabaseTest {
 			app.writeProperties();
 			app.readProperties();
 			Connection conn = app.connectToDatabase();
+			app.addData(conn);
 			app.readAllData(conn);
 		} catch (IOException | SQLException e) {
 			e.printStackTrace();

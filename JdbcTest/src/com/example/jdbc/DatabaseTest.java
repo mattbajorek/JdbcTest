@@ -7,7 +7,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.Properties;
 
 public class DatabaseTest {
@@ -41,17 +44,37 @@ public class DatabaseTest {
 		}
 	}
 	
-	public void connectToDatabase() throws SQLException {
+	public Connection connectToDatabase() throws SQLException {
 		String url = globalProps.getProperty(DB_URL);
 		String username = globalProps.getProperty(DB_USER);
 		String password = globalProps.getProperty(DB_PASSWORD);
 
 		System.out.println("Connecting database...");
 
-		try (Connection connection = DriverManager.getConnection(url, username, password)) {
+		try {
+			Connection conn = DriverManager.getConnection(url, username, password);
 		    System.out.println("Database connected!");
+			return conn;
 		} catch (SQLException e) {
 		    throw new IllegalStateException("Cannot connect the database!", e);
+		}
+	}
+	
+	public void readAllData(Connection conn) throws SQLException {
+		try (Statement query = conn.createStatement()) {
+			String sql = "SELECT * FROM burgers";
+			query.setFetchSize(100);
+			
+			try (ResultSet rs = query.executeQuery(sql)) {
+				while (!rs.isClosed() && rs.next()) {
+					int id = rs.getInt(1);
+					String burger_name = rs.getString(2);
+					boolean devoured = rs.getBoolean(3);
+					Timestamp date = rs.getTimestamp(4);
+					System.out.println(id + "; " + burger_name + "; " + devoured + "; " + date);
+				}
+			}
+			
 		}
 	}
 
@@ -60,7 +83,8 @@ public class DatabaseTest {
 		try {
 			app.writeProperties();
 			app.readProperties();
-			app.connectToDatabase();
+			Connection conn = app.connectToDatabase();
+			app.readAllData(conn);
 		} catch (IOException | SQLException e) {
 			e.printStackTrace();
 		}
